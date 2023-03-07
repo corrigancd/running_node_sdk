@@ -1,5 +1,13 @@
 # DOES NOT WORK
-
+# openapitools generator will look something like this
+# "python": {
+# 	"generatorName": "python",
+# 	"output": "../temp/python",
+# 	"glob": "./src/server/saved_objects/routes/swagger.json",
+# 	"additionalProperties": {
+# 		"supportsES6": true
+# 	}
+# },
 
 import openapi_client
 from pprint import pprint
@@ -121,5 +129,3 @@ with openapi_client.ApiClient(configuration, header_name="Content-Type", header_
     except openapi_client.ApiException as e:
         print('test2')
         print("Exception when calling DefaultApi->call_1320: %s\n" % e)
-
-

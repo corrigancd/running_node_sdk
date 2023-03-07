@@ -1,6 +1,13 @@
 # DOES NOT WORK
-
-
+# openapitools generator will look something like this
+# "python": {
+# 	"generatorName": "python",
+# 	"output": "../temp/python",
+# 	"glob": "./src/server/saved_objects/routes/swagger.json",
+# 	"additionalProperties": {
+# 		"supportsES6": true
+# 	}
+# },
 
 import openapi_client
 from openapi_client.apis.tags import default_api
