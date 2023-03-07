@@ -4,8 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "nossl": "node src/javascript_ws_no_ssl_no_basepath.js",
-    "ssl": "node src/javascript_ws_with_ssl_with_basepath.js"
+    "nossl": "node src/javascript/no_security.js",
+    "ssl": "node src/javascript/with_security_with_ssl_with_basepath.js"
   },
   "repository": {
     "type": "git",
@@ -16,8 +16,5 @@
   "bugs": {
     "url": "https://github.com/corrigancd/running_node_sdk/issues"
   },
-  "homepage": "https://github.com/corrigancd/running_node_sdk#readme",
-  "dependencies": {
-    "superagent": "^8.0.9"
-  }
+  "homepage": "https://github.com/corrigancd/running_node_sdk#readme"
 }

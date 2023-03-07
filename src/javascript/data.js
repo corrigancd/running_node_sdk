@@ -1,10 +1,3 @@
-const Openapi = require('../javascript/dist/index');
-
-const client = new Openapi.ApiClient('http://localhost:5606');
-client.defaultHeaders['kbn-xsrf'] = 'anything';
-
-const api = new Openapi.DefaultApi(client)
-
 const parentSearchAttributes = {
   title: 'Open API Testing',
   description: '',
@@ -97,25 +90,14 @@ const childSearchAttributes = {
 
 const isGlobal = false;
 
-const parentSavedSearchPayload = {
+module.exports.parentSavedSearchPayload = {
   params: { id: 'search:ec984830-3007-11ec-a72f-7b66a29ade54' },
   attributes: parentSearchAttributes,
   isGlobal,
 }
 
-const childSavedSearchPayload = {
+module.exports.childSavedSearchPayload = {
   params: { id: 'search:ec984830-3007-11ec-a72f-7b66a29ade54childOf' },
   attributes: childSearchAttributes,
   isGlobal,
 }
-
-const callback = function (error, data, response) {
-  if (error) {
-    console.error(error);
-  } else {
-    console.log('API called successfully. Returned data: ' + data);
-  }
-};
-
-api.createSavedSearchWithId(parentSavedSearchPayload.params.id, parentSavedSearchPayload, callback);
-api.createSavedSearchWithId(childSavedSearchPayload.params.id, childSavedSearchPayload, callback);
