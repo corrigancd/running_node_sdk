@@ -1,42 +1,30 @@
-
-
-// const indexFieldStrings = {
-//   name: Types.String,
-//   esType: Types.String,
-//   type: Types.String,
-//   count: Types.Number,
-//   primaryKey: Types.Boolean,
-//   singleValue: Types.Boolean,
-//   scripted: Types.Boolean,
-//   script: Types.String,
-//   lang: Types.String,
-//   searchable: Types.Boolean,
-//   aggregatable: Types.Boolean,
-//   readFromDocValues: Types.Boolean
-// }
+const { isBoolean, isObject } = require('lodash')
 const Types = {
+  Array: 'array',
   Boolean: 'boolean',
-  String: 'string',
   Number: 'number',
+  String: 'string',
+  Object: 'object',
   Undefined: 'undefined'
 };
 
-const indexFieldStrings = {
-  name: 'name',
-  esType: 'esType',
-  type: 'type',
-  count: 'count',
-  primaryKey: 'primaryKey',
-  singleValue: 'singleValue',
-  scripted: 'scripted',
-  script: 'script',
-  lang: 'lang',
-  searchable: 'searchable',
-  aggregatable: 'aggregatable',
-  readFromDocValues: 'readFromDocValues'
+const expectedFieldSchema = {
+  name: { name: 'name', type: Types.String },
+  esType: { name: 'esType', type: Types.String },
+  type: { name: 'type', type: Types.String },
+  count: { name: 'count', type: Types.Number },
+  primaryKey: { name: 'primaryKey', type: Types.Boolean },
+  singleValue: { name: 'singleValue', type: Types.Boolean },
+  scripted: { name: 'scripted', type: Types.Boolean },
+  script: { name: 'script', type: Types.String, dependency: 'scripted' },
+  lang: { name: 'lang', type: Types.String, dependency: 'scripted' },
+  searchable: { name: 'searchable', type: Types.Boolean },
+  aggregatable: { name: 'aggregatable', type: Types.Boolean },
+  readFromDocValues: { name: 'readFromDocValues', type: Types.Boolean },
 }
 
-const getFieldErrorMsg = (property, name, expectedType, actualType) => `The "${property}" property in the "${name}" field should be of type "${expectedType}" but "${actualType}" was found`;
+const getFieldErrorMsg = (property, name, expectedType, actual) => `"${property}" property in the "${name}" field should be of type "${expectedType}" but type "${typeof actual}" was found: "${actual}"`;
+const getSearchSourceJSONError = (property, expectedType, actual) => `"${property}" in "kibanaSavedObjectMeta.SearchSourceJSON" should be of type "${expectedType} but type "${typeof actual}" was found: "${actual}"`;
 const throwError = (errorMsg) => { throw new Error(errorMsg) };
 
 const sirenObjectValidation = (request) => {
@@ -62,59 +50,46 @@ const sirenObjectValidation = (request) => {
 
     if (indexPattern && indexPattern.fields) {
       const fields = JSON.parse(indexPattern.fields);
-      fields.forEach(({ name, esType, type, count, primaryKey, singleValue, scripted, script, lang, searchable, aggregatable, readFromDocValues }) => {
+      fields.forEach((field) => {
 
-        if (typeof type !== Types.String) {
-          throwError(getFieldErrorMsg(indexFieldStrings.type, name, Types.String, typeof type));
-        }
+        Object.keys(field).forEach(property => {
+          const valid = expectedFieldSchema[property];
+          const actual = field[property];
 
-        if (typeof count !== Types.Number) {
-          throwError(getFieldErrorMsg(indexFieldStrings.count, name, Types.Number, typeof count));
-        }
+          const propertyDependentOnAnotherFieldCheck = valid.dependency && field[valid.dependency];
 
-        if (typeof primaryKey !== Types.Boolean) {
-          throwError(getFieldErrorMsg(indexFieldStrings.primaryKey, name, Types.Boolean, typeof primaryKey));
-        }
-
-        if (typeof singleValue !== Types.Boolean) {
-          throwError(getFieldErrorMsg(indexFieldStrings.singleValue, name, Types.Boolean, typeof singleValue));
-        }
-
-        if (typeof scripted !== Types.Boolean) {
-          throwError(getFieldErrorMsg(indexFieldStrings.scripted, name, Types.Boolean, typeof scripted));
-        }
-
-        if (!scripted && typeof esType !== Types.String) {
-          throwError(getFieldErrorMsg(indexFieldStrings.esType, name, Types.String, typeof esType));
-        }
-
-        if (scripted && typeof script !== Types.String) {
-          throwError(getFieldErrorMsg(indexFieldStrings.script, name, Types.String, typeof scripted));
-        }
-
-        if (scripted && typeof lang !== Types.String) {
-          throwError(getFieldErrorMsg(indexFieldStrings.lang, name, Types.String, typeof lang));
-        }
-
-        if (typeof searchable !== Types.Boolean) {
-          throwError(getFieldErrorMsg(indexFieldStrings.searchable, name, Types.Boolean, typeof searchable));
-        }
-
-        if (typeof aggregatable !== Types.Boolean) {
-          throwError(getFieldErrorMsg(indexFieldStrings.aggregatable, name, Types.Boolean, typeof aggregatable));
-        }
-
-        if (typeof readFromDocValues !== Types.Boolean) {
-          throwError(getFieldErrorMsg(indexFieldStrings.readFromDocValues, name, Types.Boolean, typeof readFromDocValues));
-        }
+          if (propertyDependentOnAnotherFieldCheck && typeof actual !== valid.type) {
+            throwError(getFieldErrorMsg(valid.name, field.name, valid.type, typeof property))
+          } else if (typeof actual !== valid.type) {
+            throwError(getFieldErrorMsg(valid.name, field.name, valid.type, typeof property))
+          }
+        })
       })
     }
 
-    // console.log(kibanaSavedObjectMeta.searchSourceJSON);
-    // const searchSourceJSON = JSON.parse(kibanaSavedObjectMeta.searchSourceJSON);
-    // if (typeof searchSourceJSON !== 'object') { // we can iterate through arrays etc here to check
-    //   errorMsg = `"attributes.kibanaSavedObjectMeta.searchSourceJSON" should be a valid stringified object`;
-    // }
+    const searchSourceJSON = JSON.parse(kibanaSavedObjectMeta.searchSourceJSON);
+    const { filter, highlightAll, version, query } = searchSourceJSON;
+    console.log(filter, highlightAll, verifyChildSearch, query);
+    if (!isBoolean(highlightAll)) {
+      throwError(getSearchSourceJSONError('highlightAll', Types.Boolean, highlightAll));
+    }
+    if (!isBoolean(version)) {
+      throwError(getSearchSourceJSONError('version', Types.Boolean, version));
+    }
+    if (!isObject(query)) {
+      throwError(getSearchSourceJSONError('query', Types.Boolean, query));
+    }
+    if (!Array.isArray(filter)) {
+      throwError(getSearchSourceJSONError('filter', Types.Array, filter));
+    }
+
+    filter.forEach(fil => {
+      if (!isObject(fil)) {
+        throwError(getSearchSourceJSONError('filter array', Types.Object, fil));
+      }
+    })
+
+
   } catch (e) {
     throwError(e.message);
   }
@@ -162,7 +137,7 @@ const input = {
         }
       },
       "kibanaSavedObjectMeta": {
-        "searchSourceJSON": `{"filter":[{"meta":{"id":"filter:revision-filter","negate":false,"disabled":false,"alias":"Hide originals when revised","sid":"search:d16d3ac0-bdaa-11ed-8339-576db874358e"},"query":{"bool":{"must_not":{"term":{"_siren_revision.archived":true}}}}}],"highlightAll":true,"version":true,"query":{"match_all":{}}}`
+        "searchSourceJSON": `{"filter":[{"meta":{"id":"filter:revision-filter","negate":false,"disabled":false,"alias":"Hide originals when revised","sid":"search:d16d3ac0-bdaa-11ed-8339-576db874358e"},"query":{"bool":{"must_not":{"term":{"_siren_revision.archived":true}}}}}],"highlightAll":true,"version":true,"query":{}}`
       }
     }
   }
