@@ -1,31 +1,118 @@
-const { isBoolean, isObject } = require('lodash')
+const { isBoolean, isObject, isString, isNull, isNumber, isUndefined, isArray } = require('lodash')
 const Types = {
   Array: 'array',
   Boolean: 'boolean',
   Number: 'number',
   String: 'string',
   Object: 'object',
-  Undefined: 'undefined'
+  Undefined: 'undefined'  
 };
 
+const getDefaultSchema = () => ({
+  required: true
+});
+
 const expectedFieldSchema = {
-  name: { name: 'name', type: Types.String },
-  esType: { name: 'esType', type: Types.String },
-  type: { name: 'type', type: Types.String },
-  count: { name: 'count', type: Types.Number },
-  primaryKey: { name: 'primaryKey', type: Types.Boolean },
-  singleValue: { name: 'singleValue', type: Types.Boolean },
-  scripted: { name: 'scripted', type: Types.Boolean },
-  script: { name: 'script', type: Types.String, dependency: 'scripted' },
-  lang: { name: 'lang', type: Types.String, dependency: 'scripted' },
-  searchable: { name: 'searchable', type: Types.Boolean },
-  aggregatable: { name: 'aggregatable', type: Types.Boolean },
-  readFromDocValues: { name: 'readFromDocValues', type: Types.Boolean },
+  name: { ...getDefaultSchema(), types: [Types.String] },
+  esType: { ...getDefaultSchema(), types: [Types.String], negativeDependency: 'scripted', required: false },
+  type: { ...getDefaultSchema(), types: [Types.String] },
+  count: { ...getDefaultSchema(), types: [Types.Number] },
+  primaryKey: { ...getDefaultSchema(), types: [Types.Boolean] },
+  singleValue: { ...getDefaultSchema(), types: [Types.Boolean] },
+  scripted: { ...getDefaultSchema(), types: [Types.Boolean] },
+  script: { ...getDefaultSchema(), types: [Types.String], dependency: 'scripted', required: false },
+  lang: { ...getDefaultSchema(), types: [Types.String], dependency: 'scripted', required: false },
+  searchable: { ...getDefaultSchema(), types: [Types.Boolean] },
+  aggregatable: { ...getDefaultSchema(), types: [Types.Boolean] },
+  readFromDocValues: { ...getDefaultSchema(), types: [Types.Boolean] },
 }
 
-const getFieldErrorMsg = (property, name, expectedType, actual) => `"${property}" property in the "${name}" field should be of type "${expectedType}" but type "${typeof actual}" was found: "${actual}"`;
+const expectedFilterSchema = {
+  // required types
+  sid: { ...getDefaultSchema(), types: [Types.String] },
+  negate: { ...getDefaultSchema(), types: [Types.Boolean] },
+  disabled: { ...getDefaultSchema(), types: [Types.Boolean, null] },
+
+  // not required types
+  id: { ...getDefaultSchema(), types: [Types.String], required: false },
+  alias: { ...getDefaultSchema(), types: [Types.String], required: false },
+  version: { ...getDefaultSchema(), types: [Types.Number], required: false },
+  system: { ...getDefaultSchema(), types: [Types.Boolean], required: false },
+  value: { ...getDefaultSchema(), types: [Types.String], required: false },
+  key: { ...getDefaultSchema(), vtypes: [Types.String], required: false },
+  type: { ...getDefaultSchema(), types: [Types.String], required: false },
+  numShapes: { ...getDefaultSchema(), types: [Types.Number], required: false },
+  alias_tmpl: { ...getDefaultSchema(), types: [Types.String], required: false }
+}
+
 const getSearchSourceJSONError = (property, expectedType, actual) => `"${property}" in "kibanaSavedObjectMeta.SearchSourceJSON" should be of type "${expectedType} but type "${typeof actual}" was found: "${actual}"`;
 const throwError = (errorMsg) => { throw new Error(errorMsg) };
+
+
+const checkValidType = (property, validTypes, required, value) => {
+  if (!required && isUndefined(value)) {
+    return;
+  }
+
+  let errorMsg = '';
+  for (const type of validTypes) {
+    if (type === Types.Array && Array.isArray(value)) {
+      break;
+    } else if (type === Types.Boolean && isBoolean(value)) {
+      break;
+    } else if (type === Types.String && isString(value)) {
+      break;
+    } else if (type === null && isNull(value)) {
+      break;
+    } else if (type === Types.Number && isNumber(value)) {
+      break;
+    } else if (type === Types.Object && isObject(value)) {
+      break;
+    } else if (type === Types.Undefined && isUndefined(value)) {
+      break;
+    } else {
+      errorMsg += `"${property}" should be one of "${validTypes}" types, but "${value}" is none of the allowed\n`;
+    }
+  }
+
+  if (errorMsg) {
+    return errorMsg;
+  }
+}
+
+const checkValidTypes = (object, expectedTypesSchema, context) => {
+  for (const [property, value] of Object.entries(object)) {
+    const propertyFromSchema = expectedTypesSchema[property];
+
+    if (propertyFromSchema) {
+      const dependentOnAnotherPropertyToBeTruthy = propertyFromSchema.dependency && !object[propertyFromSchema.dependency];
+      if (dependentOnAnotherPropertyToBeTruthy) {
+        throwError(`"${property}" property requires ${propertyFromSchema.dependency} property to be truthy in the current object in "${context}"`);
+      }
+
+      const dependentOnAnotherPropertyToBeFalsy = propertyFromSchema.negativeDependency && object[propertyFromSchema.negativeDependency];
+      if (dependentOnAnotherPropertyToBeFalsy) {
+        console.log(object)
+        throwError(`"${property}" property requires ${propertyFromSchema.negativeDependency} property to be falsy in the current object in "${context}"`);
+      }
+
+      const errorMessage = checkValidType(property, propertyFromSchema.types, propertyFromSchema.required, value)
+      if (errorMessage) {
+        throwError(errorMessage);
+      }
+    } else {
+      throwError(`${property} is not a valid property in "${context}"`)
+    }
+  }
+}
+
+const checkRequiredTypes = (object, expectedTypesSchema, context) => {
+  for (const [property, value] of Object.entries(expectedTypesSchema)) {
+    if (value.required && isUndefined(object[property])) {
+      throwError(`"${property}" is required in the object array items in "${context}"`)
+    }
+  }
+}
 
 const sirenObjectValidation = (request) => {
   // after TSOA validation, we know that all attributes exist.
@@ -48,48 +135,35 @@ const sirenObjectValidation = (request) => {
     These also need to have a "attributes.siren.parentId" property`);
     }
 
-    if (indexPattern && indexPattern.fields) {
-      const fields = JSON.parse(indexPattern.fields);
-      fields.forEach((field) => {
+    const fields = JSON.parse(indexPattern.fields);
+    const context = 'indexPattern.fields';
 
-        Object.keys(field).forEach(property => {
-          const valid = expectedFieldSchema[property];
-          const actual = field[property];
+    const required = true;
+    checkValidType('fields', [Types.Array], required, fields);
 
-          const propertyDependentOnAnotherFieldCheck = valid.dependency && field[valid.dependency];
-
-          if (propertyDependentOnAnotherFieldCheck && typeof actual !== valid.type) {
-            throwError(getFieldErrorMsg(valid.name, field.name, valid.type, typeof property))
-          } else if (typeof actual !== valid.type) {
-            throwError(getFieldErrorMsg(valid.name, field.name, valid.type, typeof property))
-          }
-        })
-      })
-    }
+    fields.forEach((field) => {
+      checkRequiredTypes(field, expectedFieldSchema, context);
+      checkValidTypes(field, expectedFieldSchema, context);
+    })
 
     const searchSourceJSON = JSON.parse(kibanaSavedObjectMeta.searchSourceJSON);
     const { filter, highlightAll, version, query } = searchSourceJSON;
-    console.log(filter, highlightAll, verifyChildSearch, query);
-    if (!isBoolean(highlightAll)) {
-      throwError(getSearchSourceJSONError('highlightAll', Types.Boolean, highlightAll));
-    }
-    if (!isBoolean(version)) {
-      throwError(getSearchSourceJSONError('version', Types.Boolean, version));
-    }
-    if (!isObject(query)) {
-      throwError(getSearchSourceJSONError('query', Types.Boolean, query));
-    }
-    if (!Array.isArray(filter)) {
-      throwError(getSearchSourceJSONError('filter', Types.Array, filter));
-    }
 
-    filter.forEach(fil => {
-      if (!isObject(fil)) {
-        throwError(getSearchSourceJSONError('filter array', Types.Object, fil));
+    checkValidType('highlightAll', [Types.Boolean], required, highlightAll);
+    checkValidType('version', [Types.Boolean], required, version);
+    checkValidType('query', [Types.Object], required, query);
+    checkValidType('filter', [Types.Boolean], required, filter);
+    
+
+    filter.forEach(individualFilter => {
+      if (!isObject(individualFilter)) {
+        throwError(getSearchSourceJSONError('filter array', Types.Object, individualFilter));
       }
+
+      const context = 'kibanaSavedObjectMeta.SearchSourceJSON.filter';
+      checkRequiredTypes(individualFilter.meta, expectedFilterSchema, context);
+      checkValidTypes(individualFilter.meta, expectedFilterSchema, context);
     })
-
-
   } catch (e) {
     throwError(e.message);
   }
