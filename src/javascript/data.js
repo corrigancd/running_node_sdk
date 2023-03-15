@@ -40,7 +40,7 @@ const parentSearchAttributes = {
   kibanaSavedObjectMeta: {
     searchSourceJSON: '{"filter":[{"meta":{"id":"filter:revision-filter","negate":false,"disabled":false,"alias":"Hide originals when revised"},"query":{"bool":{"must_not":{"term":{"_siren_revision.archived":true}}}},"$state":{"store":"appState"}}],"highlightAll":true,"version":true,"query":{"match_all":{}}}',
   },
-  version: 13.2,
+  version: 10,
 }
 
 const childSearchAttributes = {
@@ -85,19 +85,20 @@ const childSearchAttributes = {
   kibanaSavedObjectMeta: {
     searchSourceJSON: '{"filter":[{"meta":{"id":"filter:revision-filter","negate":false,"disabled":false,"alias":"Hide originals when revised"},"query":{"bool":{"must_not":{"term":{"_siren_revision.archived":true}}}},"$state":{"store":"appState"}}],"highlightAll":true,"version":true,"query":{"match_all":{}}}',
   },
-  version: 13.2,
+  version: 9,
 };
 
 const isGlobal = false;
 
+module.exports.parentSavedSearchId = 'search:ec984830-3007-11ec-a72f-7b66a29ade54';
+
 module.exports.parentSavedSearchPayload = {
-  params: { id: 'search:ec984830-3007-11ec-a72f-7b66a29ade54' },
   attributes: parentSearchAttributes,
   isGlobal,
 }
 
+module.exports.childSavedSearchId = 'search:ec984830-3007-11ec-a72f-7b66a29ade54childof';
 module.exports.childSavedSearchPayload = {
-  params: { id: 'search:ec984830-3007-11ec-a72f-7b66a29ade54childOf' },
   attributes: childSearchAttributes,
   isGlobal,
 }
