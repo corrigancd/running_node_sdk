@@ -25,7 +25,7 @@ const options = {
 }
 client.requestAgent = new https.Agent(options);
 
-const api = new Openapi.WriteInvestigateObjectsApi(client)
+const api = new Openapi.WriteInvestigateObjectApi(client)
 
 const callback = function (error, data, response) {
   console.log('--------------- RESULT OF API CALL -------------------');
