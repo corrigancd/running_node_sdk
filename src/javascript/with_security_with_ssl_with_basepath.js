@@ -32,10 +32,11 @@ const callback = function (error, data, response) {
   if (error) {
     console.error(error.status, error.message);
   } else {
-    if (response.warning) {
-      console.log(warning);
+    if (response.body && response.body.warning) {
+      console.log('API called successfully but has a warning: "' + response.body.warning + '" with status: ' + response.status + '. Response body: ', response.body);
+    } else {
+      console.log('API called successfully with status: ' + response.status + '. Response body: ', response.body);
     }
-    console.log('API called successfully with status: ' + response.status + '. Response body: ', response.body);
   }
 };
 
