@@ -2,7 +2,7 @@ const fs = require('fs');
 const https = require('node:https');
 
 const Openapi = require('../../../temp/javascript/dist/index');
-const client = new Openapi.ApiClient('https://localhost:5606/axt'); // update this basepath for dev mode
+const client = new Openapi.ApiClient('https://localhost:5606/vpg'); // update this basepath for dev mode
 
 const {
   parentSavedSearchPayload,
@@ -25,7 +25,7 @@ const options = {
 }
 client.requestAgent = new https.Agent(options);
 
-const api = new Openapi.WriteInvestigateObjectApi(client)
+const api = new Openapi.CreateInvestigateObjectApi(client)
 
 const callback = function (error, data, response) {
   console.log('--------------- RESULT OF API CALL -------------------');
@@ -41,5 +41,5 @@ const callback = function (error, data, response) {
 };
 
 const type = 'search';
-api.writeInvestigateObject(type, parentSavedSearchPayload, callback)
-api.writeInvestigateObject(type, childSavedSearchPayload, callback)
+api.createInvestigateObject(type, parentSavedSearchPayload, callback)
+api.createInvestigateObject(type, childSavedSearchPayload, callback)
