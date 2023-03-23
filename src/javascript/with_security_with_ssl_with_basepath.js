@@ -2,7 +2,7 @@ const fs = require('fs');
 const https = require('node:https');
 
 const Openapi = require('../../../temp/javascript/dist/index');
-const client = new Openapi.ApiClient('https://localhost:5606/uen'); // update this basepath for dev mode
+const client = new Openapi.ApiClient('https://localhost:5606/axt'); // update this basepath for dev mode
 
 const {
   parentSavedSearchPayload,
@@ -25,20 +25,20 @@ const options = {
 }
 client.requestAgent = new https.Agent(options);
 
-const api = new Openapi.DefaultApi(client)
+const api = new Openapi.WriteInvestigateObjectsApi(client)
 
 const callback = function (error, data, response) {
   console.log('--------------- RESULT OF API CALL -------------------');
   if (error) {
     console.error(error.status, error.message);
   } else {
+    if (response.warning) {
+      console.log(warning);
+    }
     console.log('API called successfully with status: ' + response.status + '. Response body: ', response.body);
   }
 };
 
-
-api.createSavedSearch(parentSavedSearchPayload, callback)
-api.createSavedSearch(childSavedSearchPayload, callback);
-
-// api.createSavedSearchWithId(parentSavedSearchId, parentSavedSearchPayload, callback)
-// api.createSavedSearchWithId(childSavedSearchId, childSavedSearchPayload, callback);
+const type = 'search';
+api.writeInvestigateObject(type, parentSavedSearchPayload, callback)
+api.writeInvestigateObject(type, childSavedSearchPayload, callback)
