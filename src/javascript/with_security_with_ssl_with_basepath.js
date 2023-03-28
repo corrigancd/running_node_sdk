@@ -2,7 +2,7 @@ const fs = require('fs');
 const https = require('node:https');
 
 const Openapi = require('../../../temp/javascript/dist/index');
-const client = new Openapi.ApiClient('https://localhost:5606/vpg'); // update this basepath for dev mode
+const client = new Openapi.ApiClient('https://localhost:5606/lza'); // update this basepath for dev mode
 
 const {
   parentSavedSearchPayload,
@@ -20,26 +20,36 @@ client.authentications = {
   }
 }
 
-const options = { 
+const options = {
   ca: fs.readFileSync('/home/edwin/work/kibi-internal/pki/cacert.pem')
 }
 client.requestAgent = new https.Agent(options);
 
-const api = new Openapi.CreateInvestigateObjectApi(client)
+const api = new Openapi.ApiVersionV1Api(client)
 
 const callback = function (error, data, response) {
   console.log('--------------- RESULT OF API CALL -------------------');
   if (error) {
     console.error(error.status, error.message);
   } else {
-    if (response.body && response.body.warning) {
-      console.log('API called successfully but has a warning: "' + response.body.warning + '" with status: ' + response.status + '. Response body: ', response.body);
-    } else {
-      console.log('API called successfully with status: ' + response.status + '. Response body: ', response.body);
-    }
+    console.log('API called successfully with status: ' + response.status + '. Response body: ', response.body);
   }
 };
 
 const type = 'search';
-api.createInvestigateObject(type, parentSavedSearchPayload, callback)
+
+const callbackForValidate = function (error, data, response) {
+  console.log('--------------- RESULT OF VALIDATE API CALL -------------------');
+  if (error) {
+    console.error(response.error.status, response.error.text);
+  } else {
+    console.log('API validated the ' + type + ' object successfully with status: ' + response.status + '. Response body: ', response.body);
+  }
+};
+
+// here we can specify an id, which is required for parent id in order to link it to the child search
+api.updateInvestigateObject(type, parentSavedSearchId, parentSavedSearchPayload, { overwrite: true }, callback)
+
+// here we validate and create a child search, we have a concrete id from the above call
+api.validateInvestigateObject(type, childSavedSearchPayload, callbackForValidate)
 api.createInvestigateObject(type, childSavedSearchPayload, callback)

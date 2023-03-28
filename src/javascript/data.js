@@ -85,7 +85,7 @@ const childSearchAttributes = {
   kibanaSavedObjectMeta: {
     searchSourceJSON: '{"filter":[{"meta":{"id":"filter:revision-filter","negate":false,"disabled":false,"alias":"Hide originals when revised"},"query":{"bool":{"must_not":{"term":{"_siren_revision.archived":true}}}},"$state":{"store":"appState"}}],"highlightAll":true,"version":true,"query":{"match_all":{}}}',
   },
-  version: 9,
+  version: 10,
 };
 
 const isGlobal = false;
