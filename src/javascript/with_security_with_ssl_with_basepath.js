@@ -2,7 +2,7 @@ const fs = require('fs');
 const https = require('node:https');
 
 const Openapi = require('../../../temp/javascript/dist/index');
-const client = new Openapi.ApiClient('https://localhost:5606/lza'); // update this basepath for dev mode
+const client = new Openapi.ApiClient('https://localhost:5606/ylx'); // update this basepath for dev mode
 
 const {
   parentSavedSearchPayload,
@@ -42,14 +42,19 @@ const callbackForValidate = function (error, data, response) {
   console.log('--------------- RESULT OF VALIDATE API CALL -------------------');
   if (error) {
     console.error(response.error.status, response.error.text);
+  } else if (response.body.warning) {
+    console.log('API validated the ' + type + ' object successfully with status: ' + response.status + '. But there was a warning: "' + response.body.warning + '"');
   } else {
     console.log('API validated the ' + type + ' object successfully with status: ' + response.status + '. Response body: ', response.body);
   }
 };
 
 // here we can specify an id, which is required for parent id in order to link it to the child search
-api.updateInvestigateObject(type, parentSavedSearchId, parentSavedSearchPayload, { overwrite: true }, callback)
+// api.updateInvestigateObject(type, parentSavedSearchId, parentSavedSearchPayload, { overwrite: true }, callback)
 
 // here we validate and create a child search, we have a concrete id from the above call
-api.validateInvestigateObject(type, childSavedSearchPayload, callbackForValidate)
-api.createInvestigateObject(type, childSavedSearchPayload, callback)
+api.validateInvestigateObject(type, parentSavedSearchPayload, callbackForValidate);
+api.validateInvestigateObject(type, childSavedSearchPayload, callbackForValidate);
+
+
+// api.createInvestigateObject(type, childSavedSearchPayload, callback)
