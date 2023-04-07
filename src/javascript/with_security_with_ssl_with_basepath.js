@@ -2,7 +2,7 @@ const fs = require('fs');
 const https = require('node:https');
 
 const Openapi = require('../../../temp/javascript/dist/index');
-const client = new Openapi.ApiClient('https://localhost:5606/ylx'); // update this basepath for dev mode
+const client = new Openapi.ApiClient('https://localhost:5606/mnh'); // update this basepath for dev mode
 
 const {
   parentSavedSearchPayload,
@@ -31,6 +31,8 @@ const callback = function (error, data, response) {
   console.log('--------------- RESULT OF API CALL -------------------');
   if (error) {
     console.error(error.status, error.message);
+  } else if (response.body.warning) {
+    console.log('API called successfully with status ' + response.status + ' . But there was a warning: "' + response.body.warning + '"');
   } else {
     console.log('API called successfully with status: ' + response.status + '. Response body: ', response.body);
   }
@@ -57,4 +59,5 @@ api.validateInvestigateObject(type, parentSavedSearchPayload, callbackForValidat
 api.validateInvestigateObject(type, childSavedSearchPayload, callbackForValidate);
 
 
+// creating an investigate object
 // api.createInvestigateObject(type, childSavedSearchPayload, callback)
