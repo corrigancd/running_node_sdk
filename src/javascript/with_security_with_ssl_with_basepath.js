@@ -2,14 +2,20 @@ const fs = require('fs');
 const https = require('node:https');
 
 const Openapi = require('../../../temp/javascript/dist/index');
-const client = new Openapi.ApiClient('https://localhost:5606/mnh'); // update this basepath for dev mode
+const client = new Openapi.ApiClient('https://localhost:5606/eta'); // update this basepath for dev mode
 
 const {
   parentSavedSearchPayload,
   childSavedSearchPayload,
   parentSavedSearchId,
-  childSavedSearchId
-} = require('./data');
+  childSavedSearchId,
+  searchType
+} = require('./saved_search_data');
+
+const {
+  savedEidPayload,
+  eidType
+} = require('./saved_eid_data');
 
 client.defaultHeaders['kbn-xsrf'] = 'anything';
 client.authentications = {
@@ -29,8 +35,8 @@ const api = new Openapi.ApiVersionV1Api(client)
 
 const callback = function (error, data, response) {
   console.log('--------------- RESULT OF API CALL -------------------');
-  if (error) {
-    console.error(error.status, error.message);
+  if (response.error) {
+    console.error(response.error.status, response.error.text);
   } else if (response.body.warning) {
     console.log('API called successfully with status ' + response.status + ' . But there was a warning: "' + response.body.warning + '"');
   } else {
@@ -38,26 +44,32 @@ const callback = function (error, data, response) {
   }
 };
 
-const type = 'search';
 
 const callbackForValidate = function (error, data, response) {
   console.log('--------------- RESULT OF VALIDATE API CALL -------------------');
-  if (error) {
+  if (response.error) {
     console.error(response.error.status, response.error.text);
   } else if (response.body.warning) {
-    console.log('API validated the ' + type + ' object successfully with status: ' + response.status + '. But there was a warning: "' + response.body.warning + '"');
+    console.log('API validated the ' + response.body.type + ' object successfully with status: ' + response.status + '. But there was a warning: "' + response.body.warning + '"');
   } else {
-    console.log('API validated the ' + type + ' object successfully with status: ' + response.status + '. Response body: ', response.body);
+    console.log('API validated the ' + response.body.type + ' object successfully with status: ' + response.status + '. Response body: ', response.body);
   }
 };
 
+// Saved Search
 // here we can specify an id, which is required for parent id in order to link it to the child search
 // api.updateInvestigateObject(type, parentSavedSearchId, parentSavedSearchPayload, { overwrite: true }, callback)
 
 // here we validate and create a child search, we have a concrete id from the above call
-api.validateInvestigateObject(type, parentSavedSearchPayload, callbackForValidate);
-api.validateInvestigateObject(type, childSavedSearchPayload, callbackForValidate);
+// api.validateInvestigateObject(searchType, parentSavedSearchPayload, callbackForValidate);
+// api.validateInvestigateObject(searchType, childSavedSearchPayload, callbackForValidate);
 
+
+// api.createInvestigateObjectWithId(type, parentSavedSearchId, parentSavedSearchPayload, { overwrite: false }, callback)
 
 // creating an investigate object
 // api.createInvestigateObject(type, childSavedSearchPayload, callback)
+
+// savedEids
+api.createInvestigateObject(eidType, savedEidPayload, callback)
+api.validateInvestigateObject(eidType, savedEidPayload, callbackForValidate)
