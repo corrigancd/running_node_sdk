@@ -2,7 +2,7 @@ const fs = require('fs');
 const https = require('node:https');
 
 const Openapi = require('../../../temp/javascript/dist/index');
-const client = new Openapi.ApiClient('https://localhost:5606/eta'); // update this basepath for dev mode
+const client = new Openapi.ApiClient('https://localhost:5606/wox'); // update this basepath for dev mode
 
 const {
   parentSavedSearchPayload,
@@ -14,7 +14,8 @@ const {
 
 const {
   savedEidPayload,
-  eidType
+  eidType,
+  eidId
 } = require('./saved_eid_data');
 
 client.defaultHeaders['kbn-xsrf'] = 'anything';
@@ -65,11 +66,12 @@ const callbackForValidate = function (error, data, response) {
 // api.validateInvestigateObject(searchType, childSavedSearchPayload, callbackForValidate);
 
 
-// api.createInvestigateObjectWithId(type, parentSavedSearchId, parentSavedSearchPayload, { overwrite: false }, callback)
+// api.createInvestigateObjectWithId(searchType, parentSavedSearchId, parentSavedSearchPayload, { overwrite: false }, callback)
 
 // creating an investigate object
 // api.createInvestigateObject(type, childSavedSearchPayload, callback)
 
 // savedEids
-api.createInvestigateObject(eidType, savedEidPayload, callback)
-api.validateInvestigateObject(eidType, savedEidPayload, callbackForValidate)
+// api.createInvestigateObject(eidType, savedEidPayload, callback)
+// api.validateInvestigateObject(eidType, savedEidPayload, callbackForValidate)
+api.createInvestigateObjectWithId(eidType, eidId, savedEidPayload, { overwrite: true }, callback)
