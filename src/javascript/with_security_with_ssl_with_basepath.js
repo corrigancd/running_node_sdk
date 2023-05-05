@@ -2,7 +2,7 @@ const fs = require('fs');
 const https = require('node:https');
 
 const Openapi = require('../../../master/temp/javascript/dist/index');
-const client = new Openapi.ApiClient('https://localhost:5606/fui'); // update this basepath for dev mode
+const client = new Openapi.ApiClient('https://localhost:5606/lnb'); // update this basepath for dev mode
 
 const {
   parentSavedSearchPayload,
@@ -17,6 +17,12 @@ const {
   eidType,
   eidId
 } = require('./saved_eid_data');
+
+const {
+  savedRelationPayload,
+  relationType,
+  relationId
+} = require('./saved_relation_data');
 
 client.defaultHeaders['kbn-xsrf'] = 'anything';
 client.authentications = {
@@ -58,22 +64,29 @@ const callbackForValidate = function (error, data, response) {
 
 // Saved Search
 // here we can specify an id, which is required for parent id in order to link it to the child search
-api.updateInvestigateObject(searchType, parentSavedSearchId, parentSavedSearchPayload, callback)
+// api.updateInvestigateObject(searchType, parentSavedSearchId, parentSavedSearchPayload, callback)
 
-// creating objects 
-api.createInvestigateObject(eidType, savedEidPayload, callback)
-api.createInvestigateObject(searchType, childSavedSearchPayload, callbackForValidate); // we have a concrete id from the above call
+// // creating objects 
+// api.createInvestigateObject(eidType, savedEidPayload, callback)
+// api.createInvestigateObject(searchType, childSavedSearchPayload, callbackForValidate); // we have a concrete id from the above call
+// api.createInvestigateObject(relationType, savedRelationPayload, callback)
 
-// validating various objects
-api.validateInvestigateObject(searchType, parentSavedSearchPayload, callbackForValidate);
-api.validateInvestigateObject(searchType, childSavedSearchPayload, callbackForValidate);
-api.validateInvestigateObject(eidType, savedEidPayload, callbackForValidate);
+// // validating various objects
+// api.validateInvestigateObject(searchType, parentSavedSearchPayload, callbackForValidate);
+// api.validateInvestigateObject(searchType, childSavedSearchPayload, callbackForValidate);
+// api.validateInvestigateObject(eidType, savedEidPayload, callbackForValidate);
+// api.validateInvestigateObject(relationType, savedRelationPayload, callbackForValidate);
 
-// create investigate object with Id
-api.createInvestigateObjectWithId(searchType, parentSavedSearchId, parentSavedSearchPayload, { overwrite: false }, callback)
-api.createInvestigateObjectWithId(eidType, eidId, savedEidPayload, { overwrite: true }, callback)
+
+// // create investigate object with Id
+// api.createInvestigateObjectWithId(searchType, parentSavedSearchId, parentSavedSearchPayload, { overwrite: false }, callback)
+// api.createInvestigateObjectWithId(eidType, 'eid:ec984830-3007-11ec-a72f-7b66a29ade51', savedEidPayload, { overwrite: false }, callback)
+// api.createInvestigateObjectWithId(relationType, relationId, savedRelationPayload, { overwrite: false }, callback)
+
 
 // failed validations based on wrong type being passed to request
-api.validateInvestigateObject(eidType, parentSavedSearchPayload, callbackForValidate);
-api.validateInvestigateObject(searchType, savedEidPayload, callbackForValidate);
-api.validateInvestigateObject(eidType, childSavedSearchPayload, callbackForValidate);
+// api.validateInvestigateObject(searchType, parentSavedSearchPayload, callbackForValidate);
+// api.validateInvestigateObject(eidType, parentSavedSearchPayload, callbackForValidate);
+// api.validateInvestigateObject(searchType, savedEidPayload, callbackForValidate);
+// api.validateInvestigateObject(eidType, childSavedSearchPayload, callbackForValidate);
+api.validateInvestigateObject(relationType, childSavedSearchPayload, callbackForValidate);
