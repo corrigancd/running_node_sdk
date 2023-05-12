@@ -76,6 +76,7 @@ const callbackForValidate = function (error, data, response) {
 // api.createInvestigateObject(eidType, savedEidPayload, callback)
 // api.createInvestigateObject(searchType, childSavedSearchPayload, callbackForValidate); // we have a concrete id from the above call
 // api.createInvestigateObject(relationType, savedRelationPayload, callback)
+api.createInvestigateObject(dashboardType, savedDashboardPayload, callback);
 
 // // validating various objects
 // api.validateInvestigateObject(searchType, parentSavedSearchPayload, callbackForValidate);
@@ -89,6 +90,7 @@ api.validateInvestigateObject(dashboardType, savedDashboardPayload, callbackForV
 // api.createInvestigateObjectWithId(searchType, parentSavedSearchId, parentSavedSearchPayload, { overwrite: false }, callback)
 // api.createInvestigateObjectWithId(eidType, 'eid:ec984830-3007-11ec-a72f-7b66a29ade51', savedEidPayload, { overwrite: false }, callback)
 // api.createInvestigateObjectWithId(relationType, relationId, savedRelationPayload, { overwrite: false }, callback)
+api.createInvestigateObjectWithId(dashboardType, 'dashboard:ec984830-3007-11ec-a72f-7b66a29ade51', savedDashboardPayload, callback);
 
 
 // failed validations based on wrong type being passed to request
@@ -97,3 +99,4 @@ api.validateInvestigateObject(dashboardType, savedDashboardPayload, callbackForV
 // api.validateInvestigateObject(searchType, savedEidPayload, callbackForValidate);
 // api.validateInvestigateObject(eidType, childSavedSearchPayload, callbackForValidate);
 // api.validateInvestigateObject(relationType, childSavedSearchPayload, callbackForValidate);
+api.validateInvestigateObject(dashboardType, savedEidPayload, callbackForValidate);
