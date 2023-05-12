@@ -2,7 +2,7 @@ const fs = require('fs');
 const https = require('node:https');
 
 const Openapi = require('../../../master/temp/javascript/dist/index');
-const client = new Openapi.ApiClient('https://localhost:5606/lnb'); // update this basepath for dev mode
+const client = new Openapi.ApiClient('https://localhost:5606/cdm'); // update this basepath for dev mode
 
 const {
   parentSavedSearchPayload,
@@ -23,6 +23,12 @@ const {
   relationType,
   relationId
 } = require('./saved_relation_data');
+
+const {
+  savedDashboardPayload,
+  dashboardType,
+  dashboardId
+} = require('./saved_dashboard_data');
 
 client.defaultHeaders['kbn-xsrf'] = 'anything';
 client.authentications = {
@@ -76,6 +82,7 @@ const callbackForValidate = function (error, data, response) {
 // api.validateInvestigateObject(searchType, childSavedSearchPayload, callbackForValidate);
 // api.validateInvestigateObject(eidType, savedEidPayload, callbackForValidate);
 // api.validateInvestigateObject(relationType, savedRelationPayload, callbackForValidate);
+api.validateInvestigateObject(dashboardType, savedDashboardPayload, callbackForValidate);
 
 
 // // create investigate object with Id
@@ -89,4 +96,4 @@ const callbackForValidate = function (error, data, response) {
 // api.validateInvestigateObject(eidType, parentSavedSearchPayload, callbackForValidate);
 // api.validateInvestigateObject(searchType, savedEidPayload, callbackForValidate);
 // api.validateInvestigateObject(eidType, childSavedSearchPayload, callbackForValidate);
-api.validateInvestigateObject(relationType, childSavedSearchPayload, callbackForValidate);
+// api.validateInvestigateObject(relationType, childSavedSearchPayload, callbackForValidate);
