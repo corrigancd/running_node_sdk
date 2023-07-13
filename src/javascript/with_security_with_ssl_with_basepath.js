@@ -2,7 +2,7 @@ const fs = require('fs');
 const https = require('node:https');
 
 const Openapi = require('../../../master/temp/javascript/dist/index');
-const client = new Openapi.ApiClient('https://localhost:5606/zzr'); // update this basepath for dev mode
+const client = new Openapi.ApiClient('https://localhost:5606/ehf'); // update this basepath for dev mode
 
 const {
   parentSavedSearchPayload,
@@ -53,7 +53,7 @@ const api = new Openapi.ApiVersionV1Api(client)
 
 const callback = function (error, data, response) {
   console.log('--------------- RESULT OF API CALL -------------------');
-  if (error.response) {
+  if (error && error.response) {
     console.log(error.status, JSON.parse(error.response.text));
   } else if (response.body.warning) {
     console.log('API called successfully with status ' + response.status + ' . But there was a warning: "' + response.body.warning + '"');
